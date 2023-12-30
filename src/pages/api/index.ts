@@ -8,6 +8,7 @@ export default async function handler(
 ) {
   const username = req.query.username as string;
   const bgColor = req.query.bgColor as string;
+  const size = sizeCheck(req.query.size as string);
 
   if (!username) {
     return res.status(400).json({ message: `400 Bad Request.` });
@@ -23,15 +24,16 @@ export default async function handler(
 
   // アイコン画像をリサイズ
   const resizedIconBuffer = await sharp(iconBuffer)
-    .resize(100, 100) // 100x100にリサイズ
+    .resize(size, size) // リサイズ
     .composite([
       {
         input: Buffer.from(
-          `<svg><circle cx="50" cy="50" r="50" fill="white"/></svg>`
+          `<svg><circle cx="${size / 2}" cy="${size / 2}" r="${size / 2}" fill="white"/></svg>`
         ),
         top: 0,
         left: 0,
-        blend: "dest-in", // マスキングを適用
+        blend: "dest-in", // マスキングを適用,
+        limitInputPixels: false
       },
     ])
     .png()
@@ -39,8 +41,8 @@ export default async function handler(
 
   const buffer = await sharp({
     create: {
-      width: 100,
-      height: 100,
+      width: size,
+      height: size,
       channels: 3,
       background: !!bgColor ? bgColor : { r: 255, g: 100, b: 100, alpha: 0.5 },
     },
@@ -51,6 +53,7 @@ export default async function handler(
         blend: "over",
         top: 0,
         left: 0,
+        
       },
     ])
     .png()
@@ -59,4 +62,14 @@ export default async function handler(
   res.setHeader("Content-Type", "image/png");
   res.setHeader("Content-Disposition", "inline;");
   res.status(200).send(buffer);
+}
+
+
+const sizeCheck = (size: string):number => {
+    if (isNaN(parseInt(size)) || parseInt(size) === 0) {
+        return 100
+    } else if (parseInt(size) > 10000) {
+        return 10000
+    }
+    return parseInt(size)
 }
