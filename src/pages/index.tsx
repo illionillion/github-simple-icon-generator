@@ -1,4 +1,4 @@
-import { Box, Button, Center, Container, Image, Input, InputGroup, Textarea } from '@yamada-ui/react'
+import { Button, Center, Container, Image, Input, InputGroup } from '@yamada-ui/react'
 import Head from 'next/head';
 import { useRef, useState } from 'react'
 export default function Home() {
