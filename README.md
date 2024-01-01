@@ -17,7 +17,7 @@
 
 # parameters
 
-| name | mean | others |
+| name | description | others |
 |--------|--------|--------|
 | `username` | GitHub username | - |
 | `bgColor` | Background color | - |
