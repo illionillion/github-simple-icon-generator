@@ -8,6 +8,7 @@ export default async function handler(
 ) {
   const username = req.query.username as string;
   const bgColor = req.query.bgColor as string;
+  const isCircle = booleanCheck(req.query.isCircle as string);
   const size = sizeCheck(req.query.size as string);
 
   if (!username) {
@@ -35,12 +36,34 @@ export default async function handler(
           ),
           top: 0,
           left: 0,
-          blend: "dest-in", // マスキングを適用,
+          blend: "dest-in", // マスキングを適用
           limitInputPixels: false,
         },
       ])
       .png()
       .toBuffer();
+
+    const option: sharp.OverlayOptions[] = [
+      {
+        input: resizedIconBuffer, // リサイズしたアイコン画像を使う
+        blend: "over",
+        top: 0,
+        left: 0,
+      }
+    ]
+
+    if (isCircle) {
+      option.push({
+        input: Buffer.from(
+          `<svg><circle cx="${size / 2}" cy="${size / 2}" r="${
+            size / 2
+          }" fill="white"/></svg>`
+        ),
+        top: 0,
+        left: 0,
+        blend: "dest-in", // マスキングを適用
+      })
+    }
 
     const buffer = await sharp({
       create: {
@@ -52,14 +75,7 @@ export default async function handler(
           : { r: 255, g: 100, b: 100, alpha: 0.5 },
       },
     })
-      .composite([
-        {
-          input: resizedIconBuffer, // リサイズしたアイコン画像を使う
-          blend: "over",
-          top: 0,
-          left: 0,
-        },
-      ])
+      .composite(option)
       .png()
       .toBuffer();
 
@@ -78,4 +94,13 @@ const sizeCheck = (size: string): number => {
     return 10000;
   }
   return parseInt(size);
+};
+
+const booleanCheck = (isCircle: string): boolean => {
+  if (!isCircle) return false;
+  if (isCircle === "true") {
+    return true;
+  } else {
+    return false;
+  }
 };
